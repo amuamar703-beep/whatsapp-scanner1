@@ -11,6 +11,7 @@ services:
       playwright install-deps
       mkdir -p logs storage/exports
     startCommand: python -m app.main
+    healthCheckPath: /health
     envVars:
       - key: BOT_TOKEN
         sync: false
