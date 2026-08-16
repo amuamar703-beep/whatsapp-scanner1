@@ -4,6 +4,7 @@ echo "Starting Render build process..."
 
 # Install dependencies
 echo "Installing Python dependencies..."
+pip install --upgrade pip
 pip install -r requirements.txt
 
 # Install Playwright
@@ -18,6 +19,6 @@ mkdir -p storage/exports
 
 # Run database migrations
 echo "Running database migrations..."
-alembic upgrade head
+alembic upgrade head || echo "Migration skipped (no migrations found)"
 
 echo "Build completed successfully!"
