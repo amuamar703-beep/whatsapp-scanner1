@@ -4,7 +4,13 @@ import os
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app.core.logging import logger
+try:
+    from app.core.logging import logger
+except ImportError:
+    import logging
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger(__name__)
+
 from app.core.config import settings
 from app.database.database import init_db
 from app.bot.dispatcher import dp, bot, on_startup, on_shutdown
