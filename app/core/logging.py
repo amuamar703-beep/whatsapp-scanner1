@@ -1,10 +1,18 @@
 import logging
 import sys
+import os
 from logging.handlers import RotatingFileHandler
 from typing import Optional
 from datetime import datetime
 
-from app.core.config import settings
+try:
+    from app.core.config import settings
+except ImportError:
+    # Fallback for when config is not available
+    class DummySettings:
+        LOG_LEVEL = "INFO"
+        LOG_FILE = "logs/app.log"
+    settings = DummySettings()
 
 class SensitiveDataFilter(logging.Filter):
     def __init__(self):
@@ -29,24 +37,9 @@ class SensitiveDataFilter(logging.Filter):
                     return True
         return True
 
-class ColoredFormatter(logging.Formatter):
-    COLORS = {
-        'DEBUG': '\033[36m',
-        'INFO': '\033[32m',
-        'WARNING': '\033[33m',
-        'ERROR': '\033[31m',
-        'CRITICAL': '\033[35m'
-    }
-    RESET = '\033[0m'
-
-    def format(self, record):
-        color = self.COLORS.get(record.levelname, self.RESET)
-        record.levelname = f"{color}{record.levelname}{self.RESET}"
-        return super().format(record)
-
 def setup_logging():
     logger = logging.getLogger()
-    logger.setLevel(getattr(logging, settings.LOG_LEVEL.upper(), logging.INFO))
+    logger.setLevel(getattr(logging, getattr(settings, 'LOG_LEVEL', 'INFO'), logging.INFO))
 
     formatter = logging.Formatter(
         '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -55,17 +48,16 @@ def setup_logging():
 
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(logging.DEBUG)
-    console_handler.setFormatter(ColoredFormatter(
-        '%(asctime)s - %(levelname)s - %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S'
-    ))
+    console_handler.setFormatter(formatter)
     console_handler.addFilter(SensitiveDataFilter())
     logger.addHandler(console_handler)
 
-    if settings.LOG_FILE:
+    log_file = getattr(settings, 'LOG_FILE', 'logs/app.log')
+    if log_file:
         try:
+            os.makedirs(os.path.dirname(log_file), exist_ok=True)
             file_handler = RotatingFileHandler(
-                settings.LOG_FILE,
+                log_file,
                 maxBytes=10485760,
                 backupCount=5
             )
@@ -82,41 +74,3 @@ logger = setup_logging()
 
 def get_logger(name: str) -> logging.Logger:
     return logging.getLogger(name)
-
-class LoggerContext:
-    def __init__(self, logger: logging.Logger, context: dict):
-        self.logger = logger
-        self.context = context
-        self.original_extra = getattr(logger, 'extra', {})
-
-    def __enter__(self):
-        self.logger.extra = {**self.logger.extra, **self.context}
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.logger.extra = self.original_extra
-
-def log_function_call(logger: logging.Logger):
-    def decorator(func):
-        async def async_wrapper(*args, **kwargs):
-            logger.debug(f"Calling {func.__name__}")
-            try:
-                result = await func(*args, **kwargs)
-                logger.debug(f"Completed {func.__name__}")
-                return result
-            except Exception as e:
-                logger.error(f"Error in {func.__name__}: {e}")
-                raise
-
-        def sync_wrapper(*args, **kwargs):
-            logger.debug(f"Calling {func.__name__}")
-            try:
-                result = func(*args, **kwargs)
-                logger.debug(f"Completed {func.__name__}")
-                return result
-            except Exception as e:
-                logger.error(f"Error in {func.__name__}: {e}")
-                raise
-
-        return async_wrapper if asyncio.iscoroutinefunction(func) else sync_wrapper
-    return decorator
