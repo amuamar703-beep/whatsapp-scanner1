@@ -1,0 +1,97 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: whatsapp_scanner_db
+    environment:
+      POSTGRES_USER: ${DB_USER:-scanner}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-scanner_password}
+      POSTGRES_DB: ${DB_NAME:-whatsapp_scanner}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    restart: unless-stopped
+    networks:
+      - scanner_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-scanner}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: whatsapp_scanner_redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    networks:
+      - scanner_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  app:
+    build: .
+    container_name: whatsapp_scanner_app
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-scanner}:${DB_PASSWORD:-scanner_password}@postgres:5432/${DB_NAME:-whatsapp_scanner}
+      REDIS_URL: redis://redis:6379/0
+      BOT_TOKEN: ${BOT_TOKEN}
+      API_ID: ${API_ID}
+      API_HASH: ${API_HASH}
+      SECRET_KEY: ${SECRET_KEY}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      ADMIN_IDS: ${ADMIN_IDS}
+    volumes:
+      - ./logs:/app/logs
+      - ./storage:/app/storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - scanner_network
+    command: python -m app.main
+
+  worker:
+    build: .
+    container_name: whatsapp_scanner_worker
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-scanner}:${DB_PASSWORD:-scanner_password}@postgres:5432/${DB_NAME:-whatsapp_scanner}
+      REDIS_URL: redis://redis:6379/0
+      BOT_TOKEN: ${BOT_TOKEN}
+      API_ID: ${API_ID}
+      API_HASH: ${API_HASH}
+      SECRET_KEY: ${SECRET_KEY}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    volumes:
+      - ./logs:/app/logs
+      - ./storage:/app/storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - scanner_network
+    command: python -m app.worker_main
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  scanner_network:
+    driver: bridge

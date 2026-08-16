@@ -1,0 +1,36 @@
+
+### 10. `scripts/deploy.sh`
+
+```bash
+#!/bin/bash
+
+set -e
+
+echo "Starting deployment..."
+
+# Pull latest changes
+echo "Pulling latest changes..."
+git pull
+
+# Install dependencies
+echo "Installing dependencies..."
+pip install -r requirements.txt
+
+# Run migrations
+echo "Running database migrations..."
+alembic upgrade head
+
+# Build Docker images
+echo "Building Docker images..."
+docker-compose build
+
+# Restart containers
+echo "Restarting containers..."
+docker-compose down
+docker-compose up -d
+
+# Clean up old images
+echo "Cleaning up old images..."
+docker image prune -f
+
+echo "Deployment completed successfully!"
