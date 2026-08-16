@@ -19,6 +19,7 @@ from app.userbot import UserbotManager
 
 async def main():
     logger.info("Starting WhatsApp Link Scanner Workers...")
+    logger.info(f"Database URL: {settings.DATABASE_URL[:50]}...")
 
     try:
         init_db()
