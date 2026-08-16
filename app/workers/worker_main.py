@@ -4,13 +4,7 @@ import os
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-try:
-    from app.core.logging import logger
-except ImportError:
-    import logging
-    logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger(__name__)
-
+from app.core.logging import logger
 from app.core.config import settings
 from app.database.database import init_db
 from app.workers.queue import QueueManager
@@ -25,6 +19,7 @@ from app.userbot import UserbotManager
 
 async def main():
     logger.info("Starting WhatsApp Link Scanner Workers...")
+    logger.info(f"Database URL: {settings.DATABASE_URL[:50]}...")
 
     try:
         init_db()
