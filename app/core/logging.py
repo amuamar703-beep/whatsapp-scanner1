@@ -2,17 +2,9 @@ import logging
 import sys
 import os
 from logging.handlers import RotatingFileHandler
-from typing import Optional
 from datetime import datetime
 
-try:
-    from app.core.config import settings
-except ImportError:
-    # Fallback for when config is not available
-    class DummySettings:
-        LOG_LEVEL = "INFO"
-        LOG_FILE = "logs/app.log"
-    settings = DummySettings()
+from app.core.config import settings
 
 class SensitiveDataFilter(logging.Filter):
     def __init__(self):
@@ -30,16 +22,17 @@ class SensitiveDataFilter(logging.Filter):
         ]
 
     def filter(self, record):
-        if hasattr(record, 'msg'):
+        if hasattr(record, 'msg') and isinstance(record.msg, str):
             for pattern in self.sensitive_patterns:
-                if pattern in str(record.msg).lower():
+                if pattern.lower() in record.msg.lower():
                     record.msg = "SENSITIVE_DATA_REDACTED"
                     return True
         return True
 
 def setup_logging():
     logger = logging.getLogger()
-    logger.setLevel(getattr(logging, getattr(settings, 'LOG_LEVEL', 'INFO'), logging.INFO))
+    log_level = getattr(logging, settings.LOG_LEVEL.upper(), logging.INFO)
+    logger.setLevel(log_level)
 
     formatter = logging.Formatter(
         '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -52,12 +45,14 @@ def setup_logging():
     console_handler.addFilter(SensitiveDataFilter())
     logger.addHandler(console_handler)
 
-    log_file = getattr(settings, 'LOG_FILE', 'logs/app.log')
-    if log_file:
+    if settings.LOG_FILE:
         try:
-            os.makedirs(os.path.dirname(log_file), exist_ok=True)
+            log_dir = os.path.dirname(settings.LOG_FILE)
+            if log_dir:
+                os.makedirs(log_dir, exist_ok=True)
+            
             file_handler = RotatingFileHandler(
-                log_file,
+                settings.LOG_FILE,
                 maxBytes=10485760,
                 backupCount=5
             )
