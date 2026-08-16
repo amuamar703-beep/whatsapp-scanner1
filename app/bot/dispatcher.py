@@ -72,3 +72,4 @@ async def on_startup():
 
 async def on_shutdown():
     await bot.session.close()
+    
