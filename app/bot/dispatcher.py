@@ -1,25 +1,19 @@
 from aiogram import Bot, Dispatcher
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
-from aiogram.types import BotCommand, BotCommandScopeDefault
+from aiogram.types import BotCommand
 
-from app.core.config import settings
+try:
+    from app.core.config import settings
+except ImportError:
+    class DummySettings:
+        BOT_TOKEN = ""
+    settings = DummySettings()
 
 bot = Bot(token=settings.BOT_TOKEN)
 storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
 
-from app.bot.handlers import (
-    start,
-    explorer,
-    scanner,
-    wallet,
-    accounts,
-    settings,
-    jobs,
-    export,
-    whatsapp_send,
-    admin
-)
+from app.bot.handlers import start, explorer, scanner, wallet, accounts, settings as settings_handler, jobs, export, whatsapp_send, admin
 
 dp.register_message_handler(start.cmd_start, commands=["start"])
 dp.register_message_handler(start.cmd_help, commands=["help"])
@@ -46,10 +40,13 @@ dp.register_callback_query_handler(wallet.open_wallet, lambda c: c.data == "wall
 dp.register_callback_query_handler(wallet.wallet_direct_links, lambda c: c.data == "wallet:direct")
 dp.register_callback_query_handler(wallet.wallet_request_links, lambda c: c.data == "wallet:request")
 dp.register_callback_query_handler(wallet.wallet_stats, lambda c: c.data == "wallet:stats")
+dp.register_callback_query_handler(wallet.wallet_back, lambda c: c.data == "wallet:back")
 
-dp.register_callback_query_handler(settings.open_settings, lambda c: c.data == "settings:open")
+dp.register_callback_query_handler(settings_handler.open_settings, lambda c: c.data == "settings:open")
+dp.register_callback_query_handler(settings_handler.settings_back, lambda c: c.data == "settings:back")
 
 dp.register_callback_query_handler(jobs.view_jobs, lambda c: c.data == "jobs:open")
+dp.register_callback_query_handler(jobs.jobs_back, lambda c: c.data == "jobs:back")
 
 async def set_commands():
     commands = [
