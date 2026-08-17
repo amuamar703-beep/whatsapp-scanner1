@@ -1,15 +1,12 @@
 from aiogram import Bot, Dispatcher
-from aiogram.client.default import DefaultBotProperties
-from aiogram.enums import ParseMode
-from aiogram.fsm.storage.memory import MemoryStorage
+from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.types import BotCommand, BotCommandScopeDefault
 
 from app.core.config import settings
-from app.bot.middlewares.auth import AuthMiddleware
-from app.bot.middlewares.rate_limit import RateLimitMiddleware
-from app.bot.middlewares.logging import LoggingMiddleware
-from app.bot.middlewares.error_handler import ErrorHandlerMiddleware
-from app.bot.middlewares.security import SecurityMiddleware
+
+bot = Bot(token=settings.BOT_TOKEN)
+storage = MemoryStorage()
+dp = Dispatcher(bot, storage=storage)
 
 from app.bot.handlers import (
     start,
@@ -24,36 +21,35 @@ from app.bot.handlers import (
     admin
 )
 
-bot = Bot(
-    token=settings.BOT_TOKEN,
-    default=DefaultBotProperties(parse_mode=ParseMode.HTML)
-)
+dp.register_message_handler(start.cmd_start, commands=["start"])
+dp.register_message_handler(start.cmd_help, commands=["help"])
+dp.register_message_handler(start.cmd_explore, commands=["explore"])
+dp.register_message_handler(start.cmd_wallet, commands=["wallet"])
+dp.register_message_handler(start.cmd_jobs, commands=["jobs"])
+dp.register_message_handler(start.cmd_settings, commands=["settings"])
+dp.register_message_handler(start.cmd_admin, commands=["admin"])
 
-storage = MemoryStorage()
-dp = Dispatcher(storage=storage)
+dp.register_callback_query_handler(explorer.start_exploration_callback, lambda c: c.data == "explore:start")
+dp.register_callback_query_handler(explorer.run_exploration, lambda c: c.data.startswith("explore:run:"))
+dp.register_callback_query_handler(explorer.change_source, lambda c: c.data == "explore:change")
+dp.register_callback_query_handler(explorer.cancel_exploration, lambda c: c.data == "explore:cancel")
+dp.register_callback_query_handler(explorer.show_results, lambda c: c.data.startswith("explore:results:"))
 
-dp.message.middleware(SecurityMiddleware())
-dp.message.middleware(AuthMiddleware())
-dp.message.middleware(RateLimitMiddleware())
-dp.message.middleware(LoggingMiddleware())
-dp.message.middleware(ErrorHandlerMiddleware())
+dp.register_callback_query_handler(scanner.start_analysis, lambda c: c.data.startswith("analysis:start:"))
+dp.register_callback_query_handler(scanner.confirm_analysis, lambda c: c.data.startswith("analysis:confirm:"))
+dp.register_callback_query_handler(scanner.show_direct_links, lambda c: c.data.startswith("analysis:direct:"))
+dp.register_callback_query_handler(scanner.show_request_links, lambda c: c.data.startswith("analysis:request:"))
+dp.register_callback_query_handler(scanner.show_invalid_links, lambda c: c.data.startswith("analysis:invalid:"))
+dp.register_callback_query_handler(scanner.show_other_links, lambda c: c.data.startswith("analysis:other:"))
 
-dp.callback_query.middleware(SecurityMiddleware())
-dp.callback_query.middleware(AuthMiddleware())
-dp.callback_query.middleware(RateLimitMiddleware())
-dp.callback_query.middleware(LoggingMiddleware())
-dp.callback_query.middleware(ErrorHandlerMiddleware())
+dp.register_callback_query_handler(wallet.open_wallet, lambda c: c.data == "wallet:open")
+dp.register_callback_query_handler(wallet.wallet_direct_links, lambda c: c.data == "wallet:direct")
+dp.register_callback_query_handler(wallet.wallet_request_links, lambda c: c.data == "wallet:request")
+dp.register_callback_query_handler(wallet.wallet_stats, lambda c: c.data == "wallet:stats")
 
-dp.include_router(start.router)
-dp.include_router(explorer.router)
-dp.include_router(scanner.router)
-dp.include_router(wallet.router)
-dp.include_router(accounts.router)
-dp.include_router(settings.router)
-dp.include_router(jobs.router)
-dp.include_router(export.router)
-dp.include_router(whatsapp_send.router)
-dp.include_router(admin.router)
+dp.register_callback_query_handler(settings.open_settings, lambda c: c.data == "settings:open")
+
+dp.register_callback_query_handler(jobs.view_jobs, lambda c: c.data == "jobs:open")
 
 async def set_commands():
     commands = [
@@ -63,13 +59,11 @@ async def set_commands():
         BotCommand(command="wallet", description="عرض المحفظة"),
         BotCommand(command="jobs", description="عرض المهام الحالية"),
         BotCommand(command="settings", description="الإعدادات"),
-        BotCommand(command="admin", description="لوحة الإدارة")
     ]
-    await bot.set_my_commands(commands, scope=BotCommandScopeDefault())
+    await bot.set_my_commands(commands)
 
 async def on_startup():
     await set_commands()
 
 async def on_shutdown():
-    await bot.session.close()
-    
+    await bot.close()
