@@ -60,7 +60,7 @@ async def main():
 
     try:
         logger.info("Bot started successfully!")
-        await dp.start_polling(bot)
+        await dp.start_polling()
     except Exception as e:
         logger.error(f"Bot polling error: {e}")
     finally:
