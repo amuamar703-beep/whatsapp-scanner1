@@ -4,7 +4,13 @@ import os
 from logging.handlers import RotatingFileHandler
 from datetime import datetime
 
-from app.core.config import settings
+try:
+    from app.core.config import settings
+except ImportError:
+    class DummySettings:
+        LOG_LEVEL = "INFO"
+        LOG_FILE = "logs/app.log"
+    settings = DummySettings()
 
 class SensitiveDataFilter(logging.Filter):
     def __init__(self):
@@ -31,7 +37,7 @@ class SensitiveDataFilter(logging.Filter):
 
 def setup_logging():
     logger = logging.getLogger()
-    log_level = getattr(logging, settings.LOG_LEVEL.upper(), logging.INFO)
+    log_level = getattr(logging, getattr(settings, 'LOG_LEVEL', 'INFO'), logging.INFO)
     logger.setLevel(log_level)
 
     formatter = logging.Formatter(
@@ -45,14 +51,15 @@ def setup_logging():
     console_handler.addFilter(SensitiveDataFilter())
     logger.addHandler(console_handler)
 
-    if settings.LOG_FILE:
+    log_file = getattr(settings, 'LOG_FILE', 'logs/app.log')
+    if log_file:
         try:
-            log_dir = os.path.dirname(settings.LOG_FILE)
+            log_dir = os.path.dirname(log_file)
             if log_dir:
                 os.makedirs(log_dir, exist_ok=True)
             
             file_handler = RotatingFileHandler(
-                settings.LOG_FILE,
+                log_file,
                 maxBytes=10485760,
                 backupCount=5
             )
