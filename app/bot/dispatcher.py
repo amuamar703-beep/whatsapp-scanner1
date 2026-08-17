@@ -3,12 +3,11 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.types import BotCommand
 
 from app.core.config import settings
+from app.bot.handlers import start, explorer, scanner, wallet, accounts, settings as settings_handler, jobs, export, whatsapp_send, admin
 
 bot = Bot(token=settings.BOT_TOKEN)
 storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
-
-from app.bot.handlers import start, explorer, scanner, wallet, accounts, settings as settings_handler, jobs, export, whatsapp_send, admin
 
 dp.register_message_handler(start.cmd_start, commands=["start"])
 dp.register_message_handler(start.cmd_help, commands=["help"])
@@ -22,6 +21,7 @@ dp.register_callback_query_handler(explorer.start_exploration_callback, lambda c
 dp.register_callback_query_handler(explorer.run_exploration, lambda c: c.data.startswith("explore:run:"))
 dp.register_callback_query_handler(explorer.change_source, lambda c: c.data == "explore:change")
 dp.register_callback_query_handler(explorer.cancel_exploration, lambda c: c.data == "explore:cancel")
+dp.register_callback_query_handler(explorer.retry_exploration, lambda c: c.data == "explore:retry")
 dp.register_callback_query_handler(explorer.show_results, lambda c: c.data.startswith("explore:results:"))
 
 dp.register_callback_query_handler(scanner.start_analysis, lambda c: c.data.startswith("analysis:start:"))
@@ -36,6 +36,7 @@ dp.register_callback_query_handler(wallet.wallet_direct_links, lambda c: c.data 
 dp.register_callback_query_handler(wallet.wallet_request_links, lambda c: c.data == "wallet:request")
 dp.register_callback_query_handler(wallet.wallet_stats, lambda c: c.data == "wallet:stats")
 dp.register_callback_query_handler(wallet.wallet_back, lambda c: c.data == "wallet:back")
+dp.register_callback_query_handler(wallet.wallet_delete_confirm, lambda c: c.data.startswith("wallet:delete:"))
 
 dp.register_callback_query_handler(settings_handler.open_settings, lambda c: c.data == "settings:open")
 dp.register_callback_query_handler(settings_handler.settings_back, lambda c: c.data == "settings:back")
