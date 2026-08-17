@@ -11,7 +11,6 @@ from app.analyzers.validator import ResultValidator
 from app.analyzers.retry_manager import RetryManager
 from app.analyzers.rate_limiter import RateLimiter
 from app.analyzers.adapters.official_adapter import OfficialAdapter
-from app.analyzers.adapters.browser_adapter import BrowserAdapter
 from app.analyzers.exceptions import AnalysisFailedError, AnalysisTimeoutError
 
 class WhatsAppAnalyzer(BaseAnalyzer):
@@ -22,7 +21,6 @@ class WhatsAppAnalyzer(BaseAnalyzer):
         self.retry_manager = RetryManager()
         self.rate_limiter = RateLimiter()
         self.official_adapter = OfficialAdapter()
-        self.browser_adapter = BrowserAdapter()
         self._session = None
 
     async def _get_session(self) -> aiohttp.ClientSession:
@@ -121,9 +119,9 @@ class WhatsAppAnalyzer(BaseAnalyzer):
         
         return AnalysisResult(
             url=url,
-            status=validated.status,
-            confidence=validated.confidence,
-            details=validated.details
+            status=validated["status"],
+            confidence=validated["confidence"],
+            details=validated.get("details", {})
         )
 
     async def _handle_client_error(self, url: str, error: Exception) -> AnalysisResult:
