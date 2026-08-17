@@ -6,7 +6,7 @@ services:
     region: frankfurt
     buildCommand: |
       pip install --upgrade pip
-      pip install -r requirements.txt
+      pip install --no-cache-dir -r requirements.txt
       mkdir -p logs storage/exports
     startCommand: python -m app.main
     envVars:
@@ -41,7 +41,7 @@ services:
     region: frankfurt
     buildCommand: |
       pip install --upgrade pip
-      pip install -r requirements.txt
+      pip install --no-cache-dir -r requirements.txt
       mkdir -p logs storage/exports
     startCommand: python -m app.worker_main
     envVars:
