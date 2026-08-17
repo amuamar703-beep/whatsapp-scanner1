@@ -4,8 +4,8 @@ sqlalchemy==1.4.50
 alembic==1.12.1
 psycopg2-binary==2.9.9
 redis==4.6.0
-pydantic==1.10.13
-python-dotenv==1.0.0
+pydantic
+python-dotenv
 cryptography==41.0.7
 aiohttp==3.8.6
 asyncpg==0.29.0
