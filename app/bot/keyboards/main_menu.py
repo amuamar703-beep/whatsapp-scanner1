@@ -1,6 +1,4 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from aiogram.utils.keyboard import InlineKeyboardBuilder
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 def main_menu_keyboard():
     keyboard = InlineKeyboardMarkup(row_width=2)
@@ -20,16 +18,16 @@ def main_menu_keyboard():
     )
     return keyboard
 
-def main_menu_with_back(callback: str) -> InlineKeyboardMarkup:
-    builder = InlineKeyboardBuilder()
-    builder.row(
-        InlineKeyboardButton(text="🏠 الرئيسية", callback_data="main_menu:back")
+def main_menu_with_back(callback: str):
+    keyboard = InlineKeyboardMarkup(row_width=1)
+    keyboard.add(
+        InlineKeyboardButton("🏠 الرئيسية", callback_data=callback)
     )
-    return builder.as_markup()
+    return keyboard
 
-def back_button(callback: str) -> InlineKeyboardMarkup:
-    builder = InlineKeyboardBuilder()
-    builder.row(
-        InlineKeyboardButton(text="⬅️ رجوع", callback_data=callback)
+def back_button(callback: str):
+    keyboard = InlineKeyboardMarkup(row_width=1)
+    keyboard.add(
+        InlineKeyboardButton("⬅️ رجوع", callback_data=callback)
     )
-    return builder.as_markup()
+    return keyboard
