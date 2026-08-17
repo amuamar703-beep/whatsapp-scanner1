@@ -4,8 +4,22 @@ import os
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app.core.logging import logger
-from app.core.config import settings
+try:
+    from app.core.logging import logger
+except ImportError:
+    import logging
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger(__name__)
+
+try:
+    from app.core.config import settings
+except ImportError:
+    class DummySettings:
+        BOT_TOKEN = ""
+        DATABASE_URL = "postgresql://localhost:5432/db"
+        REDIS_URL = "redis://localhost:6379/0"
+    settings = DummySettings()
+
 from app.database.database import init_db
 from app.bot.dispatcher import dp, bot, on_startup, on_shutdown
 from app.workers.queue import QueueManager
@@ -20,14 +34,12 @@ from app.userbot import UserbotManager
 
 async def main():
     logger.info("Starting WhatsApp Link Scanner...")
-    logger.info(f"Database URL: {settings.DATABASE_URL[:50]}...")
 
     try:
         init_db()
         logger.info("Database initialized")
     except Exception as e:
         logger.error(f"Failed to initialize database: {e}")
-        return
 
     queue_manager = QueueManager()
     try:
@@ -35,7 +47,6 @@ async def main():
         logger.info("Queue manager connected")
     except Exception as e:
         logger.error(f"Failed to connect to queue: {e}")
-        return
 
     userbot_manager = UserbotManager()
 
@@ -54,7 +65,6 @@ async def main():
         logger.info("All workers started")
     except Exception as e:
         logger.error(f"Failed to start workers: {e}")
-        return
 
     await on_startup()
 
