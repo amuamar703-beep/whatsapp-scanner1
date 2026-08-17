@@ -1,13 +1,25 @@
-from aiogram import Router
-from aiogram.types import Message
-from aiogram.filters import Command
+from aiogram import types
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-from app.bot.keyboards.main_menu import main_menu_keyboard
+def main_menu_keyboard():
+    keyboard = InlineKeyboardMarkup(row_width=2)
+    keyboard.add(
+        InlineKeyboardButton("🔍 استكشاف روابط", callback_data="explore:start")
+    )
+    keyboard.add(
+        InlineKeyboardButton("💼 محفظتي", callback_data="wallet:open"),
+        InlineKeyboardButton("📱 حساباتي", callback_data="accounts:open")
+    )
+    keyboard.add(
+        InlineKeyboardButton("📊 المهام", callback_data="jobs:open"),
+        InlineKeyboardButton("⚙️ الإعدادات", callback_data="settings:open")
+    )
+    keyboard.add(
+        InlineKeyboardButton("ℹ️ المساعدة", callback_data="help:open")
+    )
+    return keyboard
 
-router = Router()
-
-@router.message(Command("start"))
-async def cmd_start(message: Message):
+async def cmd_start(message: types.Message):
     welcome_text = (
         "👋 أهلاً بك في WhatsApp Link Scanner\n\n"
         "يمكنك من هنا:\n"
@@ -20,8 +32,7 @@ async def cmd_start(message: Message):
     )
     await message.reply(welcome_text, reply_markup=main_menu_keyboard())
 
-@router.message(Command("help"))
-async def cmd_help(message: Message):
+async def cmd_help(message: types.Message):
     help_text = (
         "📖 المساعدة\n\n"
         "الأوامر المتاحة:\n"
@@ -35,27 +46,22 @@ async def cmd_help(message: Message):
     )
     await message.reply(help_text)
 
-@router.message(Command("explore"))
-async def cmd_explore(message: Message):
+async def cmd_explore(message: types.Message):
     from app.bot.handlers.explorer import start_exploration
     await start_exploration(message)
 
-@router.message(Command("wallet"))
-async def cmd_wallet(message: Message):
+async def cmd_wallet(message: types.Message):
     from app.bot.handlers.wallet import open_wallet
     await open_wallet(message)
 
-@router.message(Command("jobs"))
-async def cmd_jobs(message: Message):
+async def cmd_jobs(message: types.Message):
     from app.bot.handlers.jobs import view_jobs
     await view_jobs(message)
 
-@router.message(Command("settings"))
-async def cmd_settings(message: Message):
+async def cmd_settings(message: types.Message):
     from app.bot.handlers.settings import open_settings
     await open_settings(message)
 
-@router.message(Command("admin"))
-async def cmd_admin(message: Message):
+async def cmd_admin(message: types.Message):
     from app.bot.handlers.admin import admin_panel
     await admin_panel(message)
