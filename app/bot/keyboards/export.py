@@ -1,34 +1,33 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-def export_format_keyboard(job_id: str, category: str) -> InlineKeyboardMarkup:
-    builder = InlineKeyboardBuilder()
-    builder.row(
-        InlineKeyboardButton(text="📄 TXT", callback_data=f"export:format:{job_id}:txt:{category}")
+def export_format_keyboard(job_id: str, category: str):
+    keyboard = InlineKeyboardMarkup(row_width=1)
+    keyboard.add(
+        InlineKeyboardButton("📄 TXT", callback_data=f"export:format:{job_id}:txt:{category}")
     )
-    builder.row(
-        InlineKeyboardButton(text="📊 CSV", callback_data=f"export:format:{job_id}:csv:{category}")
+    keyboard.add(
+        InlineKeyboardButton("📊 CSV", callback_data=f"export:format:{job_id}:csv:{category}")
     )
-    builder.row(
-        InlineKeyboardButton(text="📋 JSON", callback_data=f"export:format:{job_id}:json:{category}")
+    keyboard.add(
+        InlineKeyboardButton("📋 JSON", callback_data=f"export:format:{job_id}:json:{category}")
     )
-    builder.row(
-        InlineKeyboardButton(text="⬅️ رجوع", callback_data=f"analysis:back:{job_id}")
+    keyboard.add(
+        InlineKeyboardButton("⬅️ رجوع", callback_data=f"analysis:back:{job_id}")
     )
-    return builder.as_markup()
+    return keyboard
 
-def export_wallet_format_keyboard(category: str) -> InlineKeyboardMarkup:
-    builder = InlineKeyboardBuilder()
-    builder.row(
-        InlineKeyboardButton(text="📄 TXT", callback_data=f"export:wallet_format:{category}:txt")
+def export_wallet_format_keyboard(category: str):
+    keyboard = InlineKeyboardMarkup(row_width=1)
+    keyboard.add(
+        InlineKeyboardButton("📄 TXT", callback_data=f"export:wallet_format:{category}:txt")
     )
-    builder.row(
-        InlineKeyboardButton(text="📊 CSV", callback_data=f"export:wallet_format:{category}:csv")
+    keyboard.add(
+        InlineKeyboardButton("📊 CSV", callback_data=f"export:wallet_format:{category}:csv")
     )
-    builder.row(
-        InlineKeyboardButton(text="📋 JSON", callback_data=f"export:wallet_format:{category}:json")
+    keyboard.add(
+        InlineKeyboardButton("📋 JSON", callback_data=f"export:wallet_format:{category}:json")
     )
-    builder.row(
-        InlineKeyboardButton(text="⬅️ رجوع", callback_data="wallet:back")
+    keyboard.add(
+        InlineKeyboardButton("⬅️ رجوع", callback_data="wallet:back")
     )
-    return builder.as_markup()
+    return keyboard
