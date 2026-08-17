@@ -1,9 +1,15 @@
 from aiogram import types
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
-from app.bot.keyboards.main_menu import main_menu_keyboard
+from app.bot.keyboards import main_menu_keyboard
+from app.bot.keyboards import (
+    source_confirmation_keyboard,
+    source_not_available_keyboard,
+    exploration_cancel_keyboard,
+    exploration_completed_keyboard,
+    results_pagination_keyboard
+)
 from app.userbot import SourceResolver
 from app.userbot.manager import UserbotManager
 from app.database.database import get_db
@@ -23,79 +29,6 @@ class ExplorationStates(StatesGroup):
 
 userbot_manager = UserbotManager()
 queue_manager = QueueManager()
-
-def source_confirmation_keyboard(source_id: int):
-    keyboard = InlineKeyboardMarkup(row_width=2)
-    keyboard.add(
-        InlineKeyboardButton("🚀 بدء الاستكشاف", callback_data=f"explore:run:{source_id}")
-    )
-    keyboard.add(
-        InlineKeyboardButton("🔄 تغيير المصدر", callback_data="explore:change"),
-        InlineKeyboardButton("❌ إلغاء", callback_data="explore:cancel")
-    )
-    return keyboard
-
-def source_not_available_keyboard():
-    keyboard = InlineKeyboardMarkup(row_width=2)
-    keyboard.add(
-        InlineKeyboardButton("🔄 المحاولة مرة أخرى", callback_data="explore:retry"),
-        InlineKeyboardButton("📍 مصدر آخر", callback_data="explore:change")
-    )
-    keyboard.add(
-        InlineKeyboardButton("🏠 الرئيسية", callback_data="main_menu:back")
-    )
-    return keyboard
-
-def exploration_cancel_keyboard(job_id: str):
-    keyboard = InlineKeyboardMarkup(row_width=2)
-    keyboard.add(
-        InlineKeyboardButton("⏸ إيقاف مؤقت", callback_data=f"job:pause:{job_id}"),
-        InlineKeyboardButton("🛑 إلغاء", callback_data=f"job:cancel:{job_id}")
-    )
-    return keyboard
-
-def exploration_completed_keyboard(job_id: str):
-    keyboard = InlineKeyboardMarkup(row_width=1)
-    keyboard.add(
-        InlineKeyboardButton("📋 عرض روابط WhatsApp", callback_data=f"explore:results:{job_id}")
-    )
-    keyboard.add(
-        InlineKeyboardButton("🔍 بدء الفحص", callback_data=f"analysis:start:{job_id}")
-    )
-    keyboard.add(
-        InlineKeyboardButton("📊 تفاصيل الاستكشاف", callback_data=f"explore:details:{job_id}")
-    )
-    keyboard.add(
-        InlineKeyboardButton("🏠 الرئيسية", callback_data="main_menu:back")
-    )
-    return keyboard
-
-def results_pagination_keyboard(job_id: str, current_page: int, total_pages: int):
-    keyboard = InlineKeyboardMarkup(row_width=3)
-    
-    nav_buttons = []
-    if current_page > 1:
-        nav_buttons.append(
-            InlineKeyboardButton("◀️", callback_data=f"links:page:{job_id}:{current_page - 1}")
-        )
-    
-    nav_buttons.append(
-        InlineKeyboardButton(f"{current_page} / {total_pages}", callback_data="ignore")
-    )
-    
-    if current_page < total_pages:
-        nav_buttons.append(
-            InlineKeyboardButton("▶️", callback_data=f"links:page:{job_id}:{current_page + 1}")
-        )
-    
-    keyboard.add(*nav_buttons)
-    keyboard.add(
-        InlineKeyboardButton("🔍 بدء فحص الروابط", callback_data=f"analysis:start:{job_id}")
-    )
-    keyboard.add(
-        InlineKeyboardButton("⬅️ رجوع", callback_data=f"explore:back:{job_id}")
-    )
-    return keyboard
 
 async def start_exploration(message: types.Message, state: FSMContext):
     await message.reply(
@@ -129,10 +62,7 @@ async def process_source(message: types.Message, state: FSMContext, user_id: int
     
     if source_input in ["❌ إلغاء", "🏠 الرئيسية"]:
         await state.finish()
-        await message.reply(
-            "تم الإلغاء.",
-            reply_markup=main_menu_keyboard()
-        )
+        await message.reply("تم الإلغاء.", reply_markup=main_menu_keyboard())
         return
 
     await state.update_data(source_input=source_input)
@@ -171,7 +101,8 @@ async def process_source(message: types.Message, state: FSMContext, user_id: int
                 await resolving_msg.edit_text(
                     "❌ تعذر الوصول إلى المصدر.\n\n"
                     "المصدر غير متاح أو غير قابل للوصول حالياً.\n"
-                    "لم يتم إجراء أي عملية استخراج."
+                    "لم يتم إجراء أي عملية استخراج.",
+                    reply_markup=source_not_available_keyboard()
                 )
                 await state.finish()
                 return
@@ -257,10 +188,7 @@ async def change_source(callback: types.CallbackQuery, state: FSMContext):
 async def cancel_exploration(callback: types.CallbackQuery, state: FSMContext):
     await callback.answer()
     await state.finish()
-    await callback.message.edit_text(
-        "تم الإلغاء.",
-        reply_markup=main_menu_keyboard()
-    )
+    await callback.message.edit_text("تم الإلغاء.", reply_markup=main_menu_keyboard())
 
 async def retry_exploration(callback: types.CallbackQuery, state: FSMContext):
     await callback.answer()
