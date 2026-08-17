@@ -4,7 +4,7 @@ set -e
 
 echo "Starting Render build process..."
 
-# Install dependencies with explicit versions
+# Install dependencies
 echo "Installing Python dependencies..."
 pip install --upgrade pip
 pip install -r requirements.txt
@@ -17,12 +17,6 @@ python -c "import aiogram; print('aiogram installed')"
 python -c "import telethon; print('telethon installed')"
 python -c "import sqlalchemy; print('sqlalchemy installed')"
 python -c "import redis; print('redis installed')"
-python -c "import playwright; print('playwright installed')"
-
-# Install Playwright
-echo "Installing Playwright..."
-playwright install chromium
-playwright install-deps
 
 # Create necessary directories
 echo "Creating directories..."
