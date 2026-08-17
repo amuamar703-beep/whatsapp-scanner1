@@ -7,11 +7,8 @@ services:
     buildCommand: |
       pip install --upgrade pip
       pip install -r requirements.txt
-      playwright install chromium
-      playwright install-deps
       mkdir -p logs storage/exports
     startCommand: python -m app.main
-    healthCheckPath: /health
     envVars:
       - key: BOT_TOKEN
         sync: false
@@ -55,8 +52,6 @@ services:
     buildCommand: |
       pip install --upgrade pip
       pip install -r requirements.txt
-      playwright install chromium
-      playwright install-deps
       mkdir -p logs storage/exports
     startCommand: python -m app.worker_main
     envVars:
