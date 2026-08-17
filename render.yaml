@@ -33,16 +33,6 @@ services:
         value: INFO
       - key: ADMIN_IDS
         sync: false
-      - key: DB_POOL_SIZE
-        value: 5
-      - key: DB_MAX_OVERFLOW
-        value: 10
-      - key: WORKER_CONCURRENCY
-        value: 3
-      - key: GLOBAL_RATE_LIMIT
-        value: 50
-      - key: PER_USER_RATE_LIMIT
-        value: 15
 
   - type: worker
     name: whatsapp-scanner-worker
@@ -76,16 +66,6 @@ services:
         generateValue: true
       - key: LOG_LEVEL
         value: INFO
-      - key: DB_POOL_SIZE
-        value: 5
-      - key: DB_MAX_OVERFLOW
-        value: 10
-      - key: WORKER_CONCURRENCY
-        value: 3
-      - key: GLOBAL_RATE_LIMIT
-        value: 50
-      - key: PER_USER_RATE_LIMIT
-        value: 15
 
 databases:
   - name: whatsapp-scanner-db
