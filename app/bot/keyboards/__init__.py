@@ -18,9 +18,9 @@ from app.bot.keyboards.wallet import (
     wallet_category_keyboard,
     wallet_pagination_keyboard,
     wallet_confirm_delete_keyboard,
-    wallet_confirm_save_keyboard
+    wallet_confirm_save_keyboard,
+    wallet_send_whatsapp_keyboard
 )
-from app.bot.keyboards.wallet_send import wallet_send_whatsapp_keyboard
 from app.bot.keyboards.accounts import (
     telegram_accounts_keyboard,
     whatsapp_accounts_keyboard,
