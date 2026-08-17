@@ -1,0 +1,14 @@
+[phases.setup]
+nixPkgs = ["python311"]
+
+[phases.install]
+cmds = ["pip install -r requirements.txt"]
+
+[phases.start]
+cmd = "python -m app.main"
+
+[phases.start.worker]
+cmd = "python -m app.worker_main"
+
+[phases.start.web]
+cmd = "python -m app.main"
