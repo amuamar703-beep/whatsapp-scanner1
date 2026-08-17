@@ -2,12 +2,7 @@ from aiogram import Bot, Dispatcher
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.types import BotCommand
 
-try:
-    from app.core.config import settings
-except ImportError:
-    class DummySettings:
-        BOT_TOKEN = ""
-    settings = DummySettings()
+from app.core.config import settings
 
 bot = Bot(token=settings.BOT_TOKEN)
 storage = MemoryStorage()
@@ -48,6 +43,14 @@ dp.register_callback_query_handler(settings_handler.settings_back, lambda c: c.d
 dp.register_callback_query_handler(jobs.view_jobs, lambda c: c.data == "jobs:open")
 dp.register_callback_query_handler(jobs.jobs_back, lambda c: c.data == "jobs:back")
 
+dp.register_callback_query_handler(accounts.open_accounts, lambda c: c.data == "accounts:open")
+
+dp.register_callback_query_handler(export.export_select_format, lambda c: c.data.startswith("export:start:"))
+
+dp.register_callback_query_handler(whatsapp_send.wallet_send_whatsapp, lambda c: c.data.startswith("wallet:send:"))
+
+dp.register_callback_query_handler(admin.admin_panel, lambda c: c.data == "admin:open")
+
 async def set_commands():
     commands = [
         BotCommand(command="start", description="بدء البوت والقائمة الرئيسية"),
@@ -56,6 +59,7 @@ async def set_commands():
         BotCommand(command="wallet", description="عرض المحفظة"),
         BotCommand(command="jobs", description="عرض المهام الحالية"),
         BotCommand(command="settings", description="الإعدادات"),
+        BotCommand(command="admin", description="لوحة الإدارة"),
     ]
     await bot.set_my_commands(commands)
 
